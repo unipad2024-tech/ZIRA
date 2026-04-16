@@ -1,263 +1,385 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Gavel, Clock, Coins, TrendingUp, Crown, Timer, AlertTriangle } from "lucide-react";
+import { Gavel, Clock, TrendingUp, Crown, Timer, Coins, Flame } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/utils/cn";
 import { toast } from "sonner";
 import { useUserStore } from "@/store/user-store";
-import { getSupabaseBrowserClient } from "@/lib/supabase/client";
-import type { AuctionItem } from "@/types";
 
-// Static demo auctions
+/* ─── Legendary auction items with real painting references ────── */
 type DemoAuction = {
   id: string;
-  item: { name_ar: string; type: string; rarity: string; image_url: string; emoji: string; description: string; description_ar: string; id: string; name: string; cost: number };
-  start_price: number;
-  current_price: number;
-  ends_at: string;
-  is_active: boolean;
-  bid_count: number;
-  highest_bidder: null;
-  highest_bidder_id: string | null;
-  shop_item_id: string;
+  name: string;
+  name_ar: string;
+  lore: string;
+  rarity: "legendary" | "epic" | "rare";
+  painting: string;          // Wikimedia URL
+  paintingCredit: string;
+  startPrice: number;
+  currentPrice: number;
+  endsAt: string;
+  bidCount: number;
+  highestBidderId: string | null;
 };
 
-const DEMO_AUCTIONS: DemoAuction[] = [
+const AUCTIONS: DemoAuction[] = [
   {
-    id: "a1", item: { name_ar: "يونيكورن أسطوري", type: "animal", rarity: "legendary", image_url: "", emoji: "🦄", description: "", description_ar: "", id: "unicorn", name: "Unicorn", cost: 1500 },
-    start_price: 800, current_price: 1250, ends_at: new Date(Date.now() + 3 * 3600 * 1000).toISOString(),
-    is_active: true, bid_count: 12, highest_bidder: null, highest_bidder_id: null, shop_item_id: "unicorn",
+    id: "a1",
+    name: "Aegis of Athena",
+    name_ar: "درع أثينا",
+    lore: "The divine shield forged by Hephaestus, bearing the head of Medusa. Grants invincibility to the worthy.",
+    rarity: "legendary",
+    painting: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Gustav_Klimt_-_Pallas_Athene_-_Google_Art_Project.jpg/480px-Gustav_Klimt_-_Pallas_Athene_-_Google_Art_Project.jpg",
+    paintingCredit: "Klimt — Pallas Athene, 1898",
+    startPrice: 1200,
+    currentPrice: 1850,
+    endsAt: new Date(Date.now() + 3 * 3600 * 1000).toISOString(),
+    bidCount: 14,
+    highestBidderId: null,
   },
   {
-    id: "a2", item: { name_ar: "قوس قزح", type: "decoration", rarity: "epic", image_url: "", emoji: "🌈", description: "", description_ar: "", id: "rainbow", name: "Rainbow", cost: 800 },
-    start_price: 400, current_price: 680, ends_at: new Date(Date.now() + 8 * 3600 * 1000).toISOString(),
-    is_active: true, bid_count: 7, highest_bidder: null, highest_bidder_id: null, shop_item_id: "rainbow",
+    id: "a2",
+    name: "Crown of Dionysus",
+    name_ar: "تاج ديونيسوس",
+    lore: "Woven from golden vines and laurel. Those who wear it feel the intoxicating warmth of divine inspiration.",
+    rarity: "legendary",
+    painting: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Caravaggio_%28Michelangelo_Merisi_da_Caravaggio%29_-_Bacchus_-_Google_Art_Project.jpg/480px-Caravaggio_%28Michelangelo_Merisi_da_Caravaggio%29_-_Bacchus_-_Google_Art_Project.jpg",
+    paintingCredit: "Caravaggio — Bacchus, 1595",
+    startPrice: 900,
+    currentPrice: 1340,
+    endsAt: new Date(Date.now() + 7 * 3600 * 1000).toISOString(),
+    bidCount: 9,
+    highestBidderId: null,
   },
   {
-    id: "a3", item: { name_ar: "جمل نادر", type: "animal", rarity: "rare", image_url: "", emoji: "🐪", description: "", description_ar: "", id: "camel", name: "Camel", cost: 200 },
-    start_price: 100, current_price: 165, ends_at: new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
-    is_active: true, bid_count: 3, highest_bidder: null, highest_bidder_id: null, shop_item_id: "camel",
+    id: "a3",
+    name: "Lyre of Apollo",
+    name_ar: "قيثارة أبولو",
+    lore: "The golden instrument that calms storms and awakens the dead. Its melody unlocks hidden knowledge.",
+    rarity: "epic",
+    painting: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Briton_Riviere_-_Apollo.jpg/450px-Briton_Riviere_-_Apollo.jpg",
+    paintingCredit: "Briton Rivière — Apollo, 1895",
+    startPrice: 600,
+    currentPrice: 820,
+    endsAt: new Date(Date.now() + 11 * 3600 * 1000).toISOString(),
+    bidCount: 6,
+    highestBidderId: null,
   },
   {
-    id: "a4", item: { name_ar: "بحيرة ملحمية", type: "lake", rarity: "epic", image_url: "", emoji: "🏞️", description: "", description_ar: "", id: "lake", name: "Lake", cost: 500 },
-    start_price: 300, current_price: 450, ends_at: new Date(Date.now() + 12 * 3600 * 1000).toISOString(),
-    is_active: true, bid_count: 5, highest_bidder: null, highest_bidder_id: null, shop_item_id: "lake",
+    id: "a4",
+    name: "Trident of Poseidon",
+    name_ar: "ثلاثية بوسيدون",
+    lore: "Forged in the depths of the ocean. With one strike, it can part seas or summon tidal waves.",
+    rarity: "epic",
+    painting: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/John_Singer_Sargent_-_Orestes_Pursued_by_the_Furies.jpg/450px-John_Singer_Sargent_-_Orestes_Pursued_by_the_Furies.jpg",
+    paintingCredit: "J.W. Waterhouse — Hylas & Nymphs, 1896",
+    startPrice: 500,
+    currentPrice: 650,
+    endsAt: new Date(Date.now() + 18 * 3600 * 1000).toISOString(),
+    bidCount: 4,
+    highestBidderId: null,
+  },
+  {
+    id: "a5",
+    name: "Golden Fleece",
+    name_ar: "الصوف الذهبي",
+    lore: "Sought by Jason and the Argonauts. Hanging in the grove of Ares, guarded by a dragon that never sleeps.",
+    rarity: "rare",
+    painting: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Gustave_Moreau_-_Jason_et_Medee.jpg/400px-Gustave_Moreau_-_Jason_et_Medee.jpg",
+    paintingCredit: "Gustave Moreau — Jason & Medea, 1865",
+    startPrice: 280,
+    currentPrice: 390,
+    endsAt: new Date(Date.now() + 26 * 3600 * 1000).toISOString(),
+    bidCount: 3,
+    highestBidderId: null,
+  },
+  {
+    id: "a6",
+    name: "Prometheus' Torch",
+    name_ar: "شعلة بروميثيوس",
+    lore: "The stolen fire of the gods. A flame that cannot be extinguished. It burns with the light of knowledge.",
+    rarity: "rare",
+    painting: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Dirck_van_Baburen_-_Prometheus_Being_Chained_by_Vulcan_Rijksmuseum_SK-A-1606.jpg/400px-Dirck_van_Baburen_-_Prometheus_Being_Chained_by_Vulcan_Rijksmuseum_SK-A-1606.jpg",
+    paintingCredit: "Dirck van Baburen — Prometheus, 1623",
+    startPrice: 200,
+    currentPrice: 275,
+    endsAt: new Date(Date.now() + 32 * 3600 * 1000).toISOString(),
+    bidCount: 2,
+    highestBidderId: null,
   },
 ];
 
-const RARITY_STYLE: Record<string, string> = {
-  common:    "border-[var(--border)]",
-  rare:      "border-[rgba(59,130,246,0.4)]",
-  epic:      "border-[rgba(168,85,247,0.4)]",
-  legendary: "border-[rgba(245,166,35,0.5)] shadow-[0_0_20px_rgba(245,166,35,0.1)]",
+const RARITY = {
+  legendary: {
+    label: "Legendary",
+    color: "var(--gold)",
+    glow: "rgba(201,168,76,0.18)",
+    border: "rgba(201,168,76,0.45)",
+    shadow: "0 0 32px rgba(201,168,76,0.14)",
+  },
+  epic: {
+    label: "Epic",
+    color: "var(--premium)",
+    glow: "rgba(155,89,182,0.15)",
+    border: "rgba(155,89,182,0.40)",
+    shadow: "0 0 24px rgba(155,89,182,0.12)",
+  },
+  rare: {
+    label: "Rare",
+    color: "var(--azure)",
+    glow: "rgba(58,95,149,0.15)",
+    border: "rgba(58,95,149,0.38)",
+    shadow: "0 0 20px rgba(58,95,149,0.10)",
+  },
 };
 
-function useCountdown(endsAt: string) {
-  const [remaining, setRemaining] = useState(() => Math.max(0, Math.floor((new Date(endsAt).getTime() - Date.now()) / 1000)));
+function Countdown({ endsAt }: { endsAt: string }) {
+  const [rem, setRem] = useState(() => Math.max(0, Math.floor((new Date(endsAt).getTime() - Date.now()) / 1000)));
   useEffect(() => {
-    const id = setInterval(() => setRemaining((r) => Math.max(0, r - 1)), 1000);
+    const id = setInterval(() => setRem(r => Math.max(0, r - 1)), 1000);
     return () => clearInterval(id);
   }, []);
-
-  const h = Math.floor(remaining / 3600);
-  const m = Math.floor((remaining % 3600) / 60);
-  const s = remaining % 60;
-  return { h, m, s, done: remaining === 0 };
-}
-
-function CountdownBadge({ endsAt }: { endsAt: string }) {
-  const { h, m, s, done } = useCountdown(endsAt);
-  if (done) return <Badge variant="red" size="sm">⏰ انتهى</Badge>;
+  const h = Math.floor(rem / 3600), m = Math.floor((rem % 3600) / 60), s = rem % 60;
+  if (rem === 0) return <span style={{ color: "var(--crimson-hi)", fontSize: "0.7rem" }}>Ended</span>;
   return (
-    <Badge variant={h < 2 ? "red" : "surface"} size="sm" className="font-mono">
-      <Timer className="w-3 h-3" />
-      {h > 0 ? `${h}س` : ""} {m}د {s}ث
-    </Badge>
+    <span className="font-mono text-xs" style={{ color: h < 2 ? "var(--crimson-hi)" : "var(--tx-2)" }}>
+      {h > 0 ? `${h}h ` : ""}{m}m {s}s
+    </span>
   );
 }
 
 export default function AuctionPage() {
   const { user, coins, spendCoins } = useUserStore();
-  const [auctions, setAuctions] = useState<DemoAuction[]>(DEMO_AUCTIONS);
-  const [bidAmounts, setBidAmounts] = useState<Record<string, string>>({});
+  const [auctions, setAuctions] = useState(AUCTIONS);
+  const [bids, setBids] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState<string | null>(null);
 
-  const handleBid = async (auction: typeof DEMO_AUCTIONS[0]) => {
+  const handleBid = (auction: DemoAuction) => {
     if (!user) return;
-    const amount = parseInt(bidAmounts[auction.id] ?? "");
-    if (isNaN(amount) || amount <= auction.current_price) {
-      toast.error("يجب أن يكون مبلغ المزايدة أعلى من السعر الحالي");
+    const amount = parseInt(bids[auction.id] ?? "");
+    if (isNaN(amount) || amount <= auction.currentPrice) {
+      toast.error("Bid must exceed current price");
       return;
     }
     if (coins < amount) {
-      toast.error("عملاتك غير كافية");
+      toast.error("Insufficient coins");
       return;
     }
-
     setLoading(auction.id);
-    const ok = spendCoins(amount);
-    if (!ok) { setLoading(null); return; }
-
-    // Update local state
-    setAuctions((prev) =>
-      prev.map((a) =>
-        a.id === auction.id
-          ? { ...a, current_price: amount, bid_count: a.bid_count + 1, highest_bidder_id: user.id }
-          : a
-      )
-    );
-
-    toast.success(`تم تقديم مزايدتك بـ ${amount} عملة! 🎉`);
-    setBidAmounts((prev) => ({ ...prev, [auction.id]: "" }));
+    if (!spendCoins(amount)) { setLoading(null); return; }
+    setAuctions(prev => prev.map(a =>
+      a.id === auction.id ? { ...a, currentPrice: amount, bidCount: a.bidCount + 1, highestBidderId: user.id } : a
+    ));
+    toast.success(`Bid placed — ${amount.toLocaleString()} coins`);
+    setBids(prev => ({ ...prev, [auction.id]: "" }));
     setLoading(null);
   };
 
   return (
-    <div className="animate-fade-in space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[var(--gold-glow)] border border-[rgba(245,166,35,0.3)] flex items-center justify-center">
-            <Gavel className="w-5 h-5 text-[var(--gold)]" />
+    <div className="animate-fade-in space-y-8">
+
+      {/* ── Header ──────────────────────────────────────────────────── */}
+      <div className="flex items-end justify-between gap-4 flex-wrap">
+        <div>
+          <p className="eyebrow mb-2">Weekly Event</p>
+          <h1 style={{
+            fontFamily: "var(--font-display)",
+            fontSize: "clamp(1.8rem, 4vw, 2.8rem)",
+            fontWeight: 900,
+            background: "linear-gradient(135deg, var(--parchment), var(--gold-hi), var(--gold))",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            backgroundClip: "text",
+            lineHeight: 1.05,
+          }}>The Grand Auction</h1>
+          <p className="text-sm mt-1" style={{ color: "var(--tx-3)", fontFamily: "var(--font-accent)", fontStyle: "italic" }}>
+            المزاد الأسبوعي — قطع أسطورية لن تجدها في أي مكان آخر
+          </p>
+        </div>
+        <div className="flex items-center gap-2 px-4 py-2 rounded-full"
+          style={{ background: "rgba(201,168,76,0.08)", border: "1px solid var(--b1)" }}
+        >
+          <Coins className="w-4 h-4" style={{ color: "var(--gold)" }} />
+          <span className="font-bold text-sm" style={{ color: "var(--gold)" }}>{Math.floor(coins).toLocaleString()}</span>
+          <span className="text-xs" style={{ color: "var(--tx-3)" }}>coins</span>
+        </div>
+      </div>
+
+      {/* ── Banner ──────────────────────────────────────────────────── */}
+      <div className="relative rounded-2xl overflow-hidden"
+        style={{
+          background: "linear-gradient(135deg, rgba(30,15,5,0.95) 0%, rgba(15,10,25,0.95) 100%)",
+          border: "1px solid rgba(201,168,76,0.25)",
+          boxShadow: "0 0 40px rgba(201,168,76,0.08)",
+        }}
+      >
+        {/* Painting strip */}
+        <div className="absolute inset-0 opacity-15" style={{
+          backgroundImage: `url('https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/%22The_School_of_Athens%22_by_Raffaello_Sanzio_da_Urbino.jpg/1280px-%22The_School_of_Athens%22_by_Raffaello_Sanzio_da_Urbino.jpg')`,
+          backgroundSize: "cover",
+          backgroundPosition: "center 25%",
+        }} />
+        <div className="relative z-10 p-6 flex items-center gap-5">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+            style={{ background: "rgba(201,168,76,0.12)", border: "1px solid rgba(201,168,76,0.30)" }}
+          >
+            <Gavel className="w-6 h-6" style={{ color: "var(--gold)" }} />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-[var(--text)]">المزاد الأسبوعي</h1>
-            <p className="text-[var(--text-muted)] text-sm">مزايدة على عناصر نادرة وحصرية</p>
+            <p className="font-bold" style={{ color: "var(--parchment)", fontFamily: "var(--font-display)", fontSize: "1.05rem" }}>
+              The auction opens every Friday at midnight.
+            </p>
+            <p className="text-sm mt-0.5" style={{ color: "var(--tx-3)", fontFamily: "var(--font-accent)", fontStyle: "italic" }}>
+              Legendary relics. Divine artefacts. Only for those who study hard enough to afford them.
+            </p>
           </div>
-        </div>
-        <Badge variant="gold" size="md">
-          <Coins className="w-3.5 h-3.5" />
-          {Math.floor(coins).toLocaleString("ar")} عملة
-        </Badge>
-      </div>
-
-      {/* Banner */}
-      <div className="bg-gradient-to-r from-[#1a0f2e] to-[#0f1a2e] border border-[rgba(168,85,247,0.3)] rounded-2xl p-5 flex items-center gap-4">
-        <span className="text-4xl">🔨</span>
-        <div>
-          <p className="font-bold text-[var(--text)]">المزاد يبدأ كل يوم جمعة!</p>
-          <p className="text-sm text-[var(--text-soft)] mt-0.5">عناصر حصرية وأسطورية لا تجدها في المتجر العادي</p>
-          <div className="flex gap-2 mt-2">
-            <Badge variant="purple" size="sm">
-              <AlertTriangle className="w-3 h-3" /> السوق السوداء قريباً
-            </Badge>
+          <div className="mr-auto flex items-center gap-2 px-3 py-1 rounded-full shrink-0"
+            style={{ background: "rgba(155,89,182,0.12)", border: "1px solid rgba(155,89,182,0.30)" }}
+          >
+            <Flame className="w-3.5 h-3.5" style={{ color: "var(--premium)" }} />
+            <span className="text-xs font-semibold" style={{ color: "var(--premium)" }}>Black Market — Coming Soon</span>
           </div>
         </div>
       </div>
 
-      {/* Active auctions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {auctions.map((auction) => {
-          const rarity = auction.item.rarity;
-          const isWinning = auction.highest_bidder_id === user?.id;
+      {/* ── Auction Grid ─────────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+        {auctions.map((a) => {
+          const r = RARITY[a.rarity];
+          const isWinning = a.highestBidderId === user?.id;
 
           return (
-            <div
-              key={auction.id}
-              className={cn(
-                "bg-[var(--bg-surface)] rounded-2xl border p-5 transition-all duration-200",
-                RARITY_STYLE[rarity]
-              )}
+            <div key={a.id}
+              className="group flex flex-col rounded-2xl overflow-hidden transition-all duration-300"
+              style={{
+                background: "rgba(12,8,5,0.85)",
+                border: `1px solid ${a.rarity === "legendary" ? "rgba(201,168,76,0.35)" : a.rarity === "epic" ? "rgba(155,89,182,0.30)" : "rgba(58,95,149,0.28)"}`,
+                boxShadow: r.shadow,
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-3px)"; (e.currentTarget as HTMLElement).style.boxShadow = r.shadow.replace("0.14","0.28").replace("0.12","0.22").replace("0.10","0.20"); }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLElement).style.boxShadow = r.shadow; }}
             >
-              {/* Item header */}
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className={cn(
-                    "w-14 h-14 rounded-xl flex items-center justify-center text-3xl",
-                    rarity === "legendary" ? "bg-[var(--gold-glow)]" :
-                    rarity === "epic" ? "bg-[var(--purple-glow)]" :
-                    rarity === "rare" ? "bg-[var(--blue-glow)]" : "bg-[var(--bg-surface2)]"
-                  )}>
-                    {(auction.item as typeof auction.item & { emoji: string }).emoji}
-                  </div>
-                  <div>
-                    <p className="font-bold text-[var(--text)]">{auction.item.name_ar}</p>
-                    <Badge
-                      variant={rarity === "legendary" ? "gold" : rarity === "epic" ? "purple" : rarity === "rare" ? "blue" : "surface"}
-                      size="sm"
-                      className="mt-0.5"
-                    >
-                      {rarity === "legendary" ? "🏆 أسطوري" : rarity === "epic" ? "💎 ملحمي" : rarity === "rare" ? "⭐ نادر" : "عادي"}
-                    </Badge>
-                  </div>
+              {/* Painting */}
+              <div className="relative h-44 overflow-hidden">
+                <img
+                  src={a.painting}
+                  alt={a.name}
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  style={{ filter: "sepia(0.25) contrast(1.08) brightness(0.85)" }}
+                  onError={e => {
+                    (e.target as HTMLImageElement).style.display = "none";
+                  }}
+                />
+                {/* Gradient overlay on painting */}
+                <div className="absolute inset-0" style={{
+                  background: `linear-gradient(0deg, rgba(12,8,5,0.95) 0%, rgba(12,8,5,0.30) 50%, transparent 100%)`,
+                }} />
+                {/* Rarity badge */}
+                <div className="absolute top-3 right-3">
+                  <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full"
+                    style={{ color: r.color, background: r.glow, border: `1px solid ${r.border}` }}
+                  >{r.label}</span>
                 </div>
-                <CountdownBadge endsAt={auction.ends_at} />
+                {/* Timer */}
+                <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2 py-0.5 rounded-full"
+                  style={{ background: "rgba(5,3,2,0.75)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.08)" }}
+                >
+                  <Timer className="w-2.5 h-2.5" style={{ color: "var(--tx-3)" }} />
+                  <Countdown endsAt={a.endsAt} />
+                </div>
+                {/* Painting credit */}
+                <p className="absolute bottom-1.5 left-2 text-[9px]" style={{ color: "rgba(245,237,214,0.25)", fontFamily: "var(--font-accent)", fontStyle: "italic" }}>
+                  {a.paintingCredit}
+                </p>
               </div>
 
-              {/* Price info */}
-              <div className="grid grid-cols-3 gap-2 mb-4">
-                <div className="bg-[var(--bg-surface2)] rounded-xl p-2.5 text-center">
-                  <p className="text-[10px] text-[var(--text-muted)]">السعر الحالي</p>
-                  <p className="text-sm font-bold text-[var(--gold)]">{auction.current_price}</p>
-                </div>
-                <div className="bg-[var(--bg-surface2)] rounded-xl p-2.5 text-center">
-                  <p className="text-[10px] text-[var(--text-muted)]">عدد المزايدات</p>
-                  <p className="text-sm font-bold text-[var(--text)]">
-                    <TrendingUp className="w-3 h-3 inline ml-1" />
-                    {auction.bid_count}
+              {/* Info */}
+              <div className="flex-1 flex flex-col p-5 gap-4">
+                <div>
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="font-bold leading-tight" style={{ fontFamily: "var(--font-display)", color: "var(--parchment)", fontSize: "1.05rem" }}>{a.name}</h3>
+                    <span className="text-xs shrink-0 mt-0.5" style={{ color: "var(--tx-3)", fontFamily: "var(--font-ui)" }}>{a.name_ar}</span>
+                  </div>
+                  <p className="text-xs mt-2 leading-relaxed" style={{ color: "var(--tx-3)", fontFamily: "var(--font-accent)", fontStyle: "italic" }}>
+                    {a.lore}
                   </p>
                 </div>
-                <div className="bg-[var(--bg-surface2)] rounded-xl p-2.5 text-center">
-                  <p className="text-[10px] text-[var(--text-muted)]">الحد الأدنى</p>
-                  <p className="text-sm font-bold text-[var(--text)]">{auction.current_price + 1}+</p>
-                </div>
-              </div>
 
-              {isWinning && (
-                <div className="mb-3 bg-[var(--gold-glow2)] border border-[rgba(245,166,35,0.3)] rounded-xl p-2.5 flex items-center gap-2 text-[var(--gold)] text-sm">
-                  <Crown className="w-4 h-4" />
-                  <span className="font-semibold">أنت الأعلى مزايدة!</span>
+                {/* Stats row */}
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { label: "Current", value: a.currentPrice.toLocaleString() },
+                    { label: "Bids", value: <span className="flex items-center gap-1 justify-center"><TrendingUp className="w-2.5 h-2.5" />{a.bidCount}</span> },
+                    { label: "Min Bid", value: `${(a.currentPrice + 1).toLocaleString()}+` },
+                  ].map(s => (
+                    <div key={s.label} className="rounded-xl p-2 text-center"
+                      style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}
+                    >
+                      <p className="text-[9px] mb-0.5 uppercase tracking-wider" style={{ color: "var(--tx-4)" }}>{s.label}</p>
+                      <p className="text-xs font-bold" style={{ color: "var(--gold)" }}>{s.value}</p>
+                    </div>
+                  ))}
                 </div>
-              )}
 
-              {/* Bid input */}
-              <div className="flex gap-2">
-                <Input
-                  type="number"
-                  placeholder={`${auction.current_price + 1}+`}
-                  value={bidAmounts[auction.id] ?? ""}
-                  onChange={(e) => setBidAmounts((prev) => ({ ...prev, [auction.id]: e.target.value }))}
-                  dir="ltr"
-                  className="flex-1"
-                />
-                <Button
-                  variant="gold"
-                  size="md"
-                  loading={loading === auction.id}
-                  onClick={() => handleBid(auction)}
-                >
-                  <Gavel className="w-4 h-4" />
-                  زايد
-                </Button>
+                {/* Winning banner */}
+                {isWinning && (
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold"
+                    style={{ background: "rgba(201,168,76,0.08)", border: "1px solid rgba(201,168,76,0.25)", color: "var(--gold)" }}
+                  >
+                    <Crown className="w-3.5 h-3.5" />
+                    You hold the highest bid
+                  </div>
+                )}
+
+                {/* Bid input */}
+                <div className="flex gap-2 mt-auto">
+                  <Input
+                    type="number"
+                    placeholder={`${a.currentPrice + 1}+`}
+                    value={bids[a.id] ?? ""}
+                    onChange={e => setBids(prev => ({ ...prev, [a.id]: e.target.value }))}
+                    dir="ltr"
+                    className="flex-1"
+                  />
+                  <Button variant="gold" size="md" loading={loading === a.id} onClick={() => handleBid(a)}>
+                    <Gavel className="w-4 h-4" />
+                    Bid
+                  </Button>
+                </div>
               </div>
             </div>
           );
         })}
       </div>
 
-      {/* My bids summary */}
-      <div className="bg-[var(--bg-surface)] border border-[var(--border)] rounded-2xl p-5">
-        <h2 className="font-semibold text-[var(--text)] mb-3 flex items-center gap-2">
-          <Clock className="w-4 h-4 text-[var(--text-muted)]" />
-          مزايداتي النشطة
+      {/* ── My Active Bids ───────────────────────────────────────────── */}
+      <div className="glass-card frame rounded-2xl p-6">
+        <h2 className="flex items-center gap-2 mb-4 font-semibold" style={{ color: "var(--tx)", fontFamily: "var(--font-display)" }}>
+          <Clock className="w-4 h-4" style={{ color: "var(--tx-3)" }} />
+          My Active Bids
+          <span className="text-xs font-normal" style={{ color: "var(--tx-3)", fontFamily: "var(--font-ui)" }}>· مزايداتي النشطة</span>
         </h2>
-        {auctions.some((a) => a.highest_bidder_id === user?.id) ? (
+        {auctions.some(a => a.highestBidderId === user?.id) ? (
           <div className="space-y-2">
-            {auctions
-              .filter((a) => a.highest_bidder_id === user?.id)
-              .map((a) => (
-                <div key={a.id} className="flex items-center gap-3 p-2.5 rounded-xl bg-[var(--gold-glow2)] border border-[rgba(245,166,35,0.15)]">
-                  <span className="text-xl">{(a.item as typeof a.item & { emoji: string }).emoji}</span>
-                  <p className="text-sm font-medium text-[var(--text)] flex-1">{a.item.name_ar}</p>
-                  <Badge variant="gold" size="sm">{a.current_price} عملة</Badge>
+            {auctions.filter(a => a.highestBidderId === user?.id).map(a => (
+              <div key={a.id} className="flex items-center gap-3 p-3 rounded-xl"
+                style={{ background: "rgba(201,168,76,0.06)", border: "1px solid rgba(201,168,76,0.18)" }}
+              >
+                <Crown className="w-4 h-4 shrink-0" style={{ color: "var(--gold)" }} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold truncate" style={{ color: "var(--parchment)", fontFamily: "var(--font-display)" }}>{a.name}</p>
+                  <p className="text-xs" style={{ color: "var(--tx-3)" }}>{a.name_ar}</p>
                 </div>
-              ))}
+                <span className="text-sm font-bold" style={{ color: "var(--gold)" }}>{a.currentPrice.toLocaleString()} <span className="text-xs font-normal" style={{ color: "var(--tx-3)" }}>coins</span></span>
+              </div>
+            ))}
           </div>
         ) : (
-          <p className="text-[var(--text-muted)] text-sm text-center py-4">لا توجد مزايدات نشطة</p>
+          <p className="text-center py-6 text-sm" style={{ color: "var(--tx-4)", fontFamily: "var(--font-accent)", fontStyle: "italic" }}>
+            No active bids — place your first bid to claim a relic.
+          </p>
         )}
       </div>
     </div>
