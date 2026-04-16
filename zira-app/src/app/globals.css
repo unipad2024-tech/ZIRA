@@ -163,6 +163,33 @@ body {
   isolation: isolate;
 }
 
+/* Landing — Baroque/Caravaggio dramatic chiaroscuro */
+.bg-baroque {
+  background:
+    /* Caravaggio spotlight — blazing warm centre-top */
+    radial-gradient(ellipse 70%  60% at 50% 10%,  rgba(255,160,50,0.65)  0%, transparent 55%),
+    /* Rubens golden halo glow */
+    radial-gradient(ellipse 90%  45% at 50% 20%,  rgba(220,130,30,0.40)  0%, transparent 60%),
+    /* Rembrandt side lamp — left upper */
+    radial-gradient(ellipse 45%  65% at 5%  30%,  rgba(180,90,15,0.42)   0%, transparent 52%),
+    /* Counter-light — right shoulder */
+    radial-gradient(ellipse 38%  50% at 92% 22%,  rgba(200,110,20,0.28)  0%, transparent 48%),
+    /* Prussian cool shadow — lower right */
+    radial-gradient(ellipse 60%  55% at 85% 80%,  rgba(15,25,45,0.55)    0%, transparent 55%),
+    /* Deep void — bottom abyss */
+    radial-gradient(ellipse 100% 50% at 50% 115%, rgba(4,2,1,0.98)       0%, transparent 52%),
+    /* Oil canvas base */
+    linear-gradient(168deg,
+      #8C520E 0%,
+      #6A380A 15%,
+      #4E2508 30%,
+      #321508 48%,
+      #1C0C04 65%,
+      #0C0603 82%,
+      #050302 100%
+    );
+}
+
 /* App layout background */
 .bg-app {
   background:

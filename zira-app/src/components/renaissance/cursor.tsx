@@ -3,16 +3,13 @@
 import { useEffect, useRef } from "react";
 
 export function RenaissanceCursor() {
-  const dotRef   = useRef<HTMLDivElement>(null);
-  const ringRef  = useRef<HTMLDivElement>(null);
-  const trailRef = useRef<HTMLDivElement>(null);
-
-  const pos    = useRef({ x: -100, y: -100 });
-  const ring   = useRef({ x: -100, y: -100 });
-  const rafRef = useRef<number>(0);
+  const dotRef  = useRef<HTMLDivElement>(null);
+  const ringRef = useRef<HTMLDivElement>(null);
+  const pos     = useRef({ x: -100, y: -100 });
+  const ring    = useRef({ x: -100, y: -100 });
+  const rafRef  = useRef<number>(0);
 
   useEffect(() => {
-    // Don't show on touch devices
     if (window.matchMedia("(pointer: coarse)").matches) return;
 
     const onMove = (e: MouseEvent) => {
@@ -20,14 +17,13 @@ export function RenaissanceCursor() {
     };
 
     const animate = () => {
-      // Dot snaps instantly
       if (dotRef.current) {
         dotRef.current.style.transform =
           `translate(${pos.current.x - 4}px, ${pos.current.y - 4}px)`;
       }
-      // Ring lerps smoothly
-      ring.current.x += (pos.current.x - ring.current.x) * 0.12;
-      ring.current.y += (pos.current.y - ring.current.y) * 0.12;
+      // Faster lerp: 0.28 instead of 0.12
+      ring.current.x += (pos.current.x - ring.current.x) * 0.28;
+      ring.current.y += (pos.current.y - ring.current.y) * 0.28;
       if (ringRef.current) {
         ringRef.current.style.transform =
           `translate(${ring.current.x - 16}px, ${ring.current.y - 16}px)`;
@@ -38,16 +34,16 @@ export function RenaissanceCursor() {
     document.addEventListener("mousemove", onMove);
     rafRef.current = requestAnimationFrame(animate);
 
-    // Hover effects
     const addHover = () => {
-      dotRef.current?.classList.add("scale-150", "opacity-50");
-      ringRef.current?.classList.add("scale-150");
+      if (dotRef.current)  dotRef.current.style.transform  += " scale(2)";
+      if (ringRef.current) ringRef.current.style.opacity = "0.4";
     };
     const removeHover = () => {
-      dotRef.current?.classList.remove("scale-150", "opacity-50");
-      ringRef.current?.classList.remove("scale-150");
+      if (ringRef.current) ringRef.current.style.opacity = "1";
     };
-    document.querySelectorAll("a,button,[role=button]").forEach(el => {
+
+    const els = document.querySelectorAll("a,button,[role=button]");
+    els.forEach(el => {
       el.addEventListener("mouseenter", addHover);
       el.addEventListener("mouseleave", removeHover);
     });
@@ -60,20 +56,15 @@ export function RenaissanceCursor() {
 
   return (
     <>
-      {/* Gold dot */}
       <div
         ref={dotRef}
-        className="fixed top-0 left-0 z-[9999] w-2 h-2 rounded-full pointer-events-none transition-transform duration-75"
-        style={{ background: "var(--gold)", boxShadow: "0 0 8px var(--gold), 0 0 16px rgba(201,168,76,0.5)" }}
+        className="fixed top-0 left-0 z-[9999] w-2 h-2 rounded-full pointer-events-none"
+        style={{ background: "var(--gold)", boxShadow: "0 0 6px var(--gold), 0 0 14px rgba(201,168,76,0.6)" }}
       />
-      {/* Trailing ring */}
       <div
         ref={ringRef}
-        className="fixed top-0 left-0 z-[9998] w-8 h-8 rounded-full pointer-events-none transition-[transform] duration-[50ms]"
-        style={{
-          border: "1px solid rgba(201,168,76,0.5)",
-          boxShadow: "0 0 8px rgba(201,168,76,0.15)",
-        }}
+        className="fixed top-0 left-0 z-[9998] w-8 h-8 rounded-full pointer-events-none"
+        style={{ border: "1px solid rgba(201,168,76,0.55)", boxShadow: "0 0 10px rgba(201,168,76,0.12)" }}
       />
     </>
   );

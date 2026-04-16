@@ -36,7 +36,12 @@ export default function LoginPage() {
     const supabase = getSupabaseBrowserClient();
     const { error } = await supabase.auth.signInWithPassword(data);
     if (error) {
-      toast.error("فشل تسجيل الدخول", { description: "تحقق من بريدك وكلمة المرور" });
+      const msg = error.message.includes("confirm")
+        ? "تحقق من بريدك الإلكتروني وأكّد حسابك أولاً"
+        : error.message.includes("Invalid")
+        ? "البريد الإلكتروني أو كلمة المرور غير صحيحة"
+        : error.message;
+      toast.error("فشل تسجيل الدخول", { description: msg });
       setLoading(false);
       return;
     }
