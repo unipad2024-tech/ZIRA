@@ -5,11 +5,12 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, Timer, Sprout, Users, Bot,
   BookOpen, Microscope, Gavel, ShoppingBag,
-  Trophy, User, LogOut, Coins, ChevronLeft,
+  Trophy, User, LogOut, Coins, ChevronLeft, Languages,
 } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useUserStore } from "@/store/user-store";
+import { useLangStore } from "@/store/lang-store";
 import { toast } from "sonner";
 
 const NAV_ITEMS = [
@@ -30,6 +31,7 @@ export function Sidebar() {
   const pathname = usePathname();
   const router   = useRouter();
   const { user, coins } = useUserStore();
+  const { lang, toggle: toggleLang } = useLangStore();
 
   const handleLogout = async () => {
     const supabase = getSupabaseBrowserClient();
@@ -195,6 +197,22 @@ export function Sidebar() {
             </div>
           </div>
         )}
+        {/* Language toggle */}
+        <button
+          onClick={toggleLang}
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm transition-all duration-150"
+          style={{ color: "var(--tx-3)", border: "1px solid transparent" }}
+          onMouseEnter={e => { e.currentTarget.style.color = "var(--gold)"; e.currentTarget.style.background = "rgba(201,168,76,0.07)"; }}
+          onMouseLeave={e => { e.currentTarget.style.color = "var(--tx-3)"; e.currentTarget.style.background = "transparent"; }}
+        >
+          <Languages className="w-4 h-4" />
+          <span>{lang === "en" ? "العربية" : "English"}</span>
+          <span className="mr-auto text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider"
+            style={{ background: "rgba(201,168,76,0.10)", color: "var(--gold)", border: "1px solid rgba(201,168,76,0.20)" }}>
+            {lang.toUpperCase()}
+          </span>
+        </button>
+
         <button
           onClick={handleLogout}
           className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm transition-all duration-150"
