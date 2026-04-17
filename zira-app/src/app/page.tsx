@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ArrowUpRight, ScanLine } from "lucide-react";
-import { RenaissanceCursor } from "@/components/renaissance/cursor";
 import { FilmGrain } from "@/components/renaissance/grain";
 import { GoldParticles } from "@/components/renaissance/particles";
 
@@ -47,7 +46,6 @@ export default function LandingPage() {
 
   return (
     <>
-      <RenaissanceCursor />
       <FilmGrain opacity={0.055} />
       <GoldParticles count={12} />
 

@@ -1,14 +1,8 @@
 "use client";
 
-import { RenaissanceCursor } from "./cursor";
 import { FilmGrain } from "./grain";
 
-/* Global Renaissance ambient effects — injected once in the app layout */
+/* App-level ambient effects — cursor is handled globally in root layout */
 export function RenaissanceEffects() {
-  return (
-    <>
-      <RenaissanceCursor />
-      <FilmGrain opacity={0.035} />
-    </>
-  );
+  return <FilmGrain opacity={0.035} />;
 }

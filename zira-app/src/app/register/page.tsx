@@ -10,7 +10,6 @@ import { toast } from "sonner";
 import { Mail, Lock, Eye, EyeOff, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { RenaissanceCursor } from "@/components/renaissance/cursor";
 import { GoldParticles } from "@/components/renaissance/particles";
 import { FilmGrain } from "@/components/renaissance/grain";
 import { ConcentricRings } from "@/components/renaissance/rings";
@@ -72,7 +71,6 @@ export default function RegisterPage() {
 
   return (
     <>
-      <RenaissanceCursor />
       <FilmGrain opacity={0.04} />
       <GoldParticles count={20} />
 

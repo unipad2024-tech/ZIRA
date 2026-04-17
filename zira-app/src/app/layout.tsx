@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist_Mono } from "next/font/google";
 import { Playfair_Display, Cormorant_Garamond, Tajawal } from "next/font/google";
 import { Toaster } from "sonner";
+import { RenaissanceCursor } from "@/components/renaissance/cursor";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -46,6 +47,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       } as React.CSSProperties}
     >
       <body className="h-full font-[family-name:var(--font-ui)] antialiased">
+        <RenaissanceCursor />
         {children}
         <Toaster
           position="top-center"
