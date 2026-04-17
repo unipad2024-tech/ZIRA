@@ -62,17 +62,17 @@ export default function LandingPage() {
           src={HERO}
           alt="Caravaggio — The Denial of Saint Peter, ca. 1610"
           className="absolute inset-0 w-full h-full object-cover"
-          style={{ objectPosition: "center 20%", filter: "sepia(0.18) contrast(1.05) brightness(0.72)" }}
+          style={{ objectPosition: "center 20%", filter: "sepia(0.12) contrast(1.02) brightness(0.90)" }}
         />
 
         {/* Top gradient — protect nav legibility */}
         <div className="absolute top-0 inset-x-0 h-32 pointer-events-none"
-          style={{ background: "linear-gradient(180deg, rgba(4,3,2,0.78) 0%, transparent 100%)" }}
+          style={{ background: "linear-gradient(180deg, rgba(4,3,2,0.60) 0%, transparent 100%)" }}
         />
 
         {/* Bottom gradient — text zone */}
         <div className="absolute bottom-0 inset-x-0 h-[55%] pointer-events-none"
-          style={{ background: "linear-gradient(0deg, rgba(4,3,2,1) 0%, rgba(4,3,2,0.96) 30%, rgba(4,3,2,0.70) 60%, transparent 100%)" }}
+          style={{ background: "linear-gradient(0deg, rgba(4,3,2,0.94) 0%, rgba(4,3,2,0.82) 30%, rgba(4,3,2,0.40) 65%, transparent 100%)" }}
         />
 
         {/* ── NAV ────────────────────────────────────────────── */}
@@ -229,10 +229,10 @@ export default function LandingPage() {
                 src={item.img}
                 alt={item.credit}
                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                style={{ filter: "sepia(0.22) contrast(1.10) brightness(0.65)" }}
+                style={{ filter: "sepia(0.14) contrast(1.06) brightness(0.82)" }}
               />
               <div className="absolute inset-0" style={{
-                background: "linear-gradient(0deg, rgba(4,3,2,0.92) 0%, rgba(4,3,2,0.30) 55%, transparent 100%)"
+                background: "linear-gradient(0deg, rgba(4,3,2,0.88) 0%, rgba(4,3,2,0.18) 50%, transparent 100%)"
               }} />
               <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
                 <p className="text-[9px] uppercase tracking-[0.22em] mb-3"
